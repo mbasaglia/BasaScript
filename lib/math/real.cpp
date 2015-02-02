@@ -147,6 +147,10 @@ Real fabs (const Real& a)
 {
     return detail::base_to_real(fabs(detail::real_to_base(a)));
 }
+Real abs (const Real& a)
+{
+    return fabs(a);
+}
 Real sqrt (const Real& a)
 {
     return detail::base_to_real(sqrt(detail::real_to_base(a)));

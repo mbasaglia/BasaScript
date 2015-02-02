@@ -19,9 +19,14 @@ find_package (Boost COMPONENTS unit_test_framework REQUIRED)
 include_directories (${CMAKE_SOURCE_DIR}/lib ${Boost_INCLUDE_DIRS})
 add_definitions (-DBOOST_TEST_DYN_LINK)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -Wextra -pedantic ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -Wextra -pedantic -Werror")
 enable_testing ()
 
-add_executable (test_math test_math.cpp ${LIB_SOURCES})
-target_link_libraries( test_math ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-add_test (NAME test_math COMMAND test_math)
+function(my_test full_name)
+    add_executable (${full_name} ${full_name}.cpp ${LIB_SOURCES})
+    target_link_libraries( ${full_name} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    add_test (NAME ${full_name} COMMAND ${full_name})
+endfunction(my_test)
+
+my_test(test_math)
+my_test(test_geo)

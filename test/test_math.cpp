@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define BOOST_TEST_MODULE Test_Math
 
-#include "math/real.hpp"
+#include "math.hpp"
 
 #include <sstream>
 #include <boost/test/unit_test.hpp>

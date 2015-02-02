@@ -89,6 +89,7 @@ bool operator>= (const Real& a, const Real& b);
 bool operator> (const Real& a, const Real& b);
 
 Real fabs (const Real& a);
+Real abs (const Real& a);
 Real sqrt (const Real& a);
 Real floor (const Real& a);
 Real ceil (const Real& a);
@@ -127,5 +128,11 @@ template <>
     {};
 } // namespace std
 
+/**
+ * \brief Namespace for custom literals
+ */
+namespace literals {
+    inline math::Real operator"" _real (const char* string) { return math::Real(string); }
+} // namespace literals
 
 #endif // MATH_REAL_HPP
