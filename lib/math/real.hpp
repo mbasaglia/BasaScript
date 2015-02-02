@@ -39,8 +39,9 @@ namespace math {
 class Real;
 namespace detail {
     typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<20>> RealBase;
+
     const detail::RealBase& real_to_base(const Real& number);
-    Real base_to_real(const detail::RealBase& number);
+    Real base_to_real(detail::RealBase number);
 } // namespace (math::)detail
 
 /**
@@ -65,12 +66,10 @@ public:
     Real  operator--(int);
 
 private:
-    explicit Real (const detail::RealBase& value);
-
     detail::RealBase value;
 
     friend const detail::RealBase& detail::real_to_base(const Real& number);
-    friend Real detail::base_to_real(const detail::RealBase& number);
+    friend Real detail::base_to_real(detail::RealBase number);
     friend std::istream& operator>> (std::istream& input, Real& number);
 };
 

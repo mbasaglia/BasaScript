@@ -96,5 +96,20 @@ BOOST_AUTO_TEST_CASE( test_circle )
         BOOST_CHECK ( c.intersects(Rectangle(-100,-100,100,100)) );
         BOOST_CHECK ( c.intersects(Rectangle(95,0,10,10)) );
         BOOST_CHECK ( !c.intersects(Rectangle(101,0,10,10)) );
+}
 
+BOOST_AUTO_TEST_CASE( test_line )
+{
+    Line l ({0,0}, {1,1});
+    BOOST_CHECK ( l == Line(Point(0,0), math::sqrt(2), math::pi / 4) );
+    BOOST_CHECK ( l.length() == math::sqrt(2) );
+    BOOST_CHECK ( l.angle() == math::pi / 4 );
+
+    l.set_angle(0);
+    BOOST_CHECK ( l.p2 == Point(math::sqrt(2),0) );
+    l.set_length(1);
+    BOOST_CHECK ( l.p2 == Point(math::sqrt(1),0) );
+
+    for ( math::Real i = 0; i < 1; i += "0.01" )
+        BOOST_CHECK ( l.point_at(i) == Point(i,0) );
 }

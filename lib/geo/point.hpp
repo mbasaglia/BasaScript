@@ -146,6 +146,52 @@ struct Size
 
     Size ( Scalar width, Scalar height ) : width(width), height(height) {}
     Size(){}
+
+    bool operator== (const Size& other) const
+    {
+        return width == other.width && height == other.height;
+    }
+    bool operator!= (const Size& other) const
+    {
+        return width != other.width || height != other.height;
+    }
+};
+
+
+/**
+ * \brief A Point defined in polar coordinates
+ */
+struct Polar_Vector
+{
+    Scalar length= 0; ///< Length
+    Scalar angle = 0; ///< Angle in radians
+
+    Polar_Vector() = default;
+    Polar_Vector(Scalar length, Scalar angle) : length(length), angle(angle) {}
+    Polar_Vector( Point point )
+        : length(point.magnitude()), angle(math::atan2(point.y,point.x)) {}
+
+    /**
+     * \brief Converts to cartesian
+     */
+    Point point() const
+    {
+        return Point( math::cos(angle) * length, math::sin(angle) * length );
+    }
+
+    Polar_Vector& operator+= ( const Point& p )
+    {
+        return *this = point() + p;
+    }
+
+    bool operator== (const Polar_Vector& other) const
+    {
+        return length == other.length && angle == other.angle;
+    }
+    bool operator!= (const Polar_Vector& other) const
+    {
+        return length != other.length || angle != other.angle;
+    }
 };
 
 } // namespace geo

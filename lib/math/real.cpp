@@ -30,9 +30,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace math {
 
 namespace detail {
-    typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<20>> RealBase;
-    const detail::RealBase& real_to_base(const Real& number) { return number.value; }
-    Real base_to_real(const detail::RealBase& number) { return Real(number); }
+    const detail::RealBase& real_to_base(const Real& number)
+    {
+        return number.value;
+    }
+    Real base_to_real(detail::RealBase number)
+    {
+        return Real(number.str(std::numeric_limits<Real>::digits10));
+    }
 } // namespace (math::)detail
 
 const Real pi = detail::base_to_real(boost::math::constants::pi<detail::RealBase>());
@@ -48,7 +53,6 @@ Real::Real (long double value, int precision)
     ss << value;
     this->value = detail::RealBase(ss.str());
 }
-Real::Real (const detail::RealBase& value) : value (value) {}
 
 Real& Real::operator+= (const Real& other)
 {
@@ -235,17 +239,14 @@ Real atan2 (const Real& a, const Real& b)
 
 std::ostream& operator<< (std::ostream& output, const Real& number)
 {
-    auto precision = output.precision();
-    output.precision(std::numeric_limits<Real>::digits10);
-    output << detail::real_to_base(number);
-    output.precision(precision);
-    return output;
+    return output << detail::real_to_base(number).str(
+        std::numeric_limits<Real>::digits10, output.flags()
+    );
 }
 
 std::istream& operator>> (std::istream& input, Real& number)
 {
-    input >> number.value;
-    return input;
+    return input >> number.value;
 }
 
 } // namespace math

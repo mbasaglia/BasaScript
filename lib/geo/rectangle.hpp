@@ -33,7 +33,7 @@ namespace geo {
 
 
 /**
- * \brief A rectangle defined by its position (top left corner) and size
+ * \brief An axis-aligned rectangle defined by its position (top left corner) and size
  */
 struct Rectangle
 {
