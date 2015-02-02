@@ -32,13 +32,10 @@ BOOST_AUTO_TEST_CASE( test_real )
 {
     using math::Real;
 
-    // Constructors
     BOOST_CHECK( Real(1) == 1 );
     BOOST_CHECK( Real("2") == 2 );
+    BOOST_CHECK( Real(0.001,3) == Real("0.001") );
     BOOST_CHECK( Real("1.23456789") == Real(123456789) / math::pow(Real(10),8) );
-    BOOST_CHECK( math::from_float(0.001,3) == Real("0.001") );
-
-    // Math/Precision
     BOOST_CHECK( Real("0.99999999") < 1 );
     BOOST_CHECK( math::sin(math::pi/2) == 1 );
 
@@ -49,10 +46,10 @@ BOOST_AUTO_TEST_CASE( test_real )
 
     Real string_output("1234.5678901234");
     std::stringstream ss;
-    //ss.precision(std::numeric_limits<Real>::digits10);
     ss << string_output;
     Real string_input(ss.str());
     BOOST_CHECK( string_input == string_output );
-
-
+    Real stream_input;
+    ss >> stream_input;
+    BOOST_CHECK( stream_input == string_output );
 }

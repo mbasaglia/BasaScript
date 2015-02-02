@@ -29,25 +29,220 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace math {
 
-const Real pi = boost::math::constants::pi<Real>();
+namespace detail {
+    typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<20>> RealBase;
+    const detail::RealBase& real_to_base(const Real& number) { return number.value; }
+    Real base_to_real(const detail::RealBase& number) { return Real(number); }
+} // namespace (math::)detail
 
-Real from_float(long double d, int precision)
+const Real pi = detail::base_to_real(boost::math::constants::pi<detail::RealBase>());
+
+Real::Real (int value) : value (value) {}
+Real::Real (long long value) : value (value) {}
+Real::Real (const char* value_string) : value (value_string) {}
+Real::Real (const std::string& value_string) : value (value_string) {}
+Real::Real (long double value, int precision)
 {
     std::stringstream ss;
     ss.precision(precision);
-    ss << d;
-    return Real(ss.str());
+    ss << value;
+    this->value = detail::RealBase(ss.str());
+}
+Real::Real (const detail::RealBase& value) : value (value) {}
+
+Real& Real::operator+= (const Real& other)
+{
+    value += other.value;
+    return *this;
+}
+Real& Real::operator-= (const Real& other)
+{
+    value -= other.value;
+    return *this;
+}
+Real& Real::operator*= (const Real& other)
+{
+    value *= other.value;
+    return *this;
+}
+Real& Real::operator/= (const Real& other)
+{
+    value /= other.value;
+    return *this;
+}
+Real& Real::operator++()
+{
+    ++value;
+    return *this;
+}
+Real  Real::operator++(int)
+{
+    Real copy = *this;
+    ++*this;
+    return copy;
+}
+Real& Real::operator--()
+{
+    --value;
+    return *this;
+}
+Real  Real::operator--(int)
+{
+    Real copy = *this;
+    --*this;
+    return copy;
 }
 
+Real operator+ (const Real& a, const Real& b)
+{
+    return detail::base_to_real(detail::real_to_base(a) + detail::real_to_base(b));
+}
+Real operator- (const Real& a, const Real& b)
+{
+    return detail::base_to_real(detail::real_to_base(a) - detail::real_to_base(b));
+}
+Real operator* (const Real& a, const Real& b)
+{
+    return detail::base_to_real(detail::real_to_base(a) * detail::real_to_base(b));
+}
+Real operator/ (const Real& a, const Real& b)
+{
+    return detail::base_to_real(detail::real_to_base(a) / detail::real_to_base(b));
+}
+Real operator- (const Real& a)
+{
+    return detail::base_to_real(-detail::real_to_base(a));
+}
+Real operator+ (const Real& a)
+{
+    return a;
+}
 
-} // namespace math
+bool operator< (const Real& a, const Real& b)
+{
+    return detail::real_to_base(a) < detail::real_to_base(b);
+}
+bool operator<= (const Real& a, const Real& b)
+{
+    return detail::real_to_base(a) <= detail::real_to_base(b);
+}
+bool operator== (const Real& a, const Real& b)
+{
+    return detail::real_to_base(a) == detail::real_to_base(b);
+}
+bool operator!= (const Real& a, const Real& b)
+{
+    return detail::real_to_base(a) != detail::real_to_base(b);
+}
+bool operator>= (const Real& a, const Real& b)
+{
+    return detail::real_to_base(a) >= detail::real_to_base(b);
+}
+bool operator> (const Real& a, const Real& b)
+{
+    return detail::real_to_base(a) > detail::real_to_base(b);
+}
 
+Real fabs (const Real& a)
+{
+    return detail::base_to_real(fabs(detail::real_to_base(a)));
+}
+Real sqrt (const Real& a)
+{
+    return detail::base_to_real(sqrt(detail::real_to_base(a)));
+}
+Real floor (const Real& a)
+{
+    return detail::base_to_real(floor(detail::real_to_base(a)));
+}
+Real ceil (const Real& a)
+{
+    return detail::base_to_real(ceil(detail::real_to_base(a)));
+}
+Real trunc (const Real& a)
+{
+    return detail::base_to_real(trunc(detail::real_to_base(a)));
+}
+Real round (const Real& a)
+{
+    return detail::base_to_real(round(detail::real_to_base(a)));
+}
+Real exp (const Real& a)
+{
+    return detail::base_to_real(exp(detail::real_to_base(a)));
+}
+Real log (const Real& a)
+{
+    return detail::base_to_real(log(detail::real_to_base(a)));
+}
+Real log10 (const Real& a)
+{
+    return detail::base_to_real(log10(detail::real_to_base(a)));
+}
+Real cos (const Real& a)
+{
+    return detail::base_to_real(cos(detail::real_to_base(a)));
+}
+Real sin (const Real& a)
+{
+    return detail::base_to_real(sin(detail::real_to_base(a)));
+}
+Real tan (const Real& a)
+{
+    return detail::base_to_real(tan(detail::real_to_base(a)));
+}
+Real asin (const Real& a)
+{
+    return detail::base_to_real(asin(detail::real_to_base(a)));
+}
+Real acos (const Real& a)
+{
+    return detail::base_to_real(acos(detail::real_to_base(a)));
+}
+Real atan (const Real& a)
+{
+    return detail::base_to_real(atan(detail::real_to_base(a)));
+}
+Real cosh (const Real& a)
+{
+    return detail::base_to_real(cosh(detail::real_to_base(a)));
+}
+Real sinh (const Real& a)
+{
+    return detail::base_to_real(sinh(detail::real_to_base(a)));
+}
+Real tanh (const Real& a)
+{
+    return detail::base_to_real(tanh(detail::real_to_base(a)));
+}
 
-std::ostream& operator<< (std::ostream& output, const math::Real& number)
+Real pow (const Real& a, const Real& b)
+{
+    return detail::base_to_real(pow(detail::real_to_base(a),detail::real_to_base(b)));
+}
+Real fmod (const Real& a, const Real& b)
+{
+    return detail::base_to_real(fmod(detail::real_to_base(a),detail::real_to_base(b)));
+}
+Real atan2 (const Real& a, const Real& b)
+{
+    return detail::base_to_real(atan2(detail::real_to_base(a),detail::real_to_base(b)));
+}
+
+std::ostream& operator<< (std::ostream& output, const Real& number)
 {
     auto precision = output.precision();
-    output.precision(std::numeric_limits<math::Real>::digits10);
-    boost::multiprecision::operator<<(output,number);
+    output.precision(std::numeric_limits<Real>::digits10);
+    output << detail::real_to_base(number);
     output.precision(precision);
     return output;
 }
+
+std::istream& operator>> (std::istream& input, Real& number)
+{
+    input >> number.value;
+    return input;
+}
+
+} // namespace math
+

@@ -25,6 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MATH_REAL_HPP
 #define MATH_REAL_HPP
 
+#include <string>
+#include <iostream>
+#include <limits>
+
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
 /**
@@ -32,57 +36,96 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace math {
 
+class Real;
+namespace detail {
+    typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<20>> RealBase;
+    const detail::RealBase& real_to_base(const Real& number);
+    Real base_to_real(const detail::RealBase& number);
+} // namespace (math::)detail
+
 /**
  * \brief Fixed precision real numbers
  */
-typedef boost::multiprecision::cpp_dec_float_100 Real;
+class Real
+{
+public:
+    Real (int value = 0);
+    Real (long long value);
+    Real (const char* value_string);
+    Real (const std::string& value_string);
+    Real (long double value, int precision);
 
-/**
- * \brief Converts from a double with the given precision
- * \note If you simply use Real(double) you might get the imprecisions
- * of floating point numbers to be reflected into the real number
- */
-Real from_float(long double d, int precision);
+    Real& operator+= (const Real& other);
+    Real& operator-= (const Real& other);
+    Real& operator*= (const Real& other);
+    Real& operator/= (const Real& other);
+    Real& operator++();
+    Real  operator++(int);
+    Real& operator--();
+    Real  operator--(int);
+
+private:
+    explicit Real (const detail::RealBase& value);
+
+    detail::RealBase value;
+
+    friend const detail::RealBase& detail::real_to_base(const Real& number);
+    friend Real detail::base_to_real(const detail::RealBase& number);
+    friend std::istream& operator>> (std::istream& input, Real& number);
+};
+
+Real operator+ (const Real& a, const Real& b);
+Real operator- (const Real& a, const Real& b);
+Real operator* (const Real& a, const Real& b);
+Real operator/ (const Real& a, const Real& b);
+Real operator- (const Real& a);
+Real operator+ (const Real& a);
+
+bool operator< (const Real& a, const Real& b);
+bool operator<= (const Real& a, const Real& b);
+bool operator== (const Real& a, const Real& b);
+bool operator!= (const Real& a, const Real& b);
+bool operator>= (const Real& a, const Real& b);
+bool operator> (const Real& a, const Real& b);
+
+Real fabs (const Real& a);
+Real sqrt (const Real& a);
+Real floor (const Real& a);
+Real ceil (const Real& a);
+Real trunc (const Real& a);
+Real round (const Real& a);
+Real exp (const Real& a);
+Real log (const Real& a);
+Real log10 (const Real& a);
+Real cos (const Real& a);
+Real sin (const Real& a);
+Real tan (const Real& a);
+Real asin (const Real& a);
+Real acos (const Real& a);
+Real atan (const Real& a);
+Real cosh (const Real& a);
+Real sinh (const Real& a);
+Real tanh (const Real& a);
+
+Real pow (const Real& a, const Real& b);
+Real fmod (const Real& a, const Real& b);
+Real atan2 (const Real& a, const Real& b);
+
+std::ostream& operator<< (std::ostream& output, const Real& number);
+std::istream& operator>> (std::istream& input, Real& number);
 
 /**
  * \brief The number of radians to get half a pie
  */
 extern const Real pi;
 
-#define UNARY_OP_FUNCTOR(func) inline Real func ( Real n ) { return Real(boost::multiprecision::func(n)); }
-#define BINARY_OP_FUNCTOR(func) inline Real func ( Real a, Real b ) { return Real(boost::multiprecision::func(a,b)); }
-
-UNARY_OP_FUNCTOR(fabs)
-UNARY_OP_FUNCTOR(sqrt)
-UNARY_OP_FUNCTOR(floor)
-UNARY_OP_FUNCTOR(ceil)
-UNARY_OP_FUNCTOR(trunc)
-UNARY_OP_FUNCTOR(round)
-UNARY_OP_FUNCTOR(exp)
-UNARY_OP_FUNCTOR(log)
-UNARY_OP_FUNCTOR(log10)
-UNARY_OP_FUNCTOR(cos)
-UNARY_OP_FUNCTOR(sin)
-UNARY_OP_FUNCTOR(tan)
-UNARY_OP_FUNCTOR(asin)
-UNARY_OP_FUNCTOR(acos)
-UNARY_OP_FUNCTOR(atan)
-UNARY_OP_FUNCTOR(cosh)
-UNARY_OP_FUNCTOR(sinh)
-UNARY_OP_FUNCTOR(tanh)
-
-BINARY_OP_FUNCTOR(pow)
-BINARY_OP_FUNCTOR(fmod)
-BINARY_OP_FUNCTOR(atan2)
-
-#undef UNARY_OP_FUNCTOR
-#undef BINARY_OP_FUNCTOR
-
 } // namespace math
 
-/**
- * \note Global scope so that this is selected instead of the one in boost::multiprecision
- */
-std::ostream& operator<< (std::ostream& output, const math::Real& number);
+namespace std {
+template <>
+    class numeric_limits<math::Real> : public numeric_limits<math::detail::RealBase>
+    {};
+} // namespace std
+
 
 #endif // MATH_REAL_HPP
