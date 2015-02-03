@@ -30,3 +30,4 @@ endfunction(my_test)
 
 my_test(test_math)
 my_test(test_geo)
+my_test(test_mirror)
