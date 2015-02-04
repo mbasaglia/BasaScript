@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BOOST_TEST_MODULE Test_Mirror
 #include "object/mirror.hpp"
 #include <boost/test/unit_test.hpp>
+#include <boost/lexical_cast.hpp>
 
 class TestClass : public object::Mirror
 {
@@ -60,8 +61,31 @@ DECLARE_PROPERTY_ATTRIBUTE(TestDerived,bar)
 TestClass base_obj;
 TestDerived derived_obj;
 
+
+BOOST_AUTO_TEST_CASE( test_any )
+{
+    util::Any any;
+    BOOST_CHECK ( any.empty() );
+    any = 5;
+    BOOST_CHECK ( any.cast<int>() == 5 );
+    BOOST_CHECK ( any.cast<long>() == 0 );
+    BOOST_CHECK ( any.to_string() == "5" );
+    util::Any other = 1.5;
+
+    using std::swap;
+    swap(any,other);
+    BOOST_CHECK ( any.cast<double>() == 1.5 );
+
+    std::stringstream ss;
+    ss << other;
+    int input = 0;
+    BOOST_CHECK ( ss >> input );
+    BOOST_CHECK ( input == 5 );
+}
+
 BOOST_AUTO_TEST_CASE( test_type_id )
 {
+    BOOST_CHECK ( TestDerived::static_type_id() > TestClass::static_type_id() );
     BOOST_CHECK ( TestClass::static_type_id() != object::Mirror::static_type_id() );
     BOOST_CHECK ( TestClass::static_type_id() == base_obj.type_id() );
     BOOST_CHECK ( derived_obj.type_id() != base_obj.type_id() );
@@ -73,6 +97,7 @@ BOOST_AUTO_TEST_CASE( test_getters )
 {
     BOOST_CHECK ( base_obj.get_any("unexisting").empty() );
 
+    BOOST_CHECK ( base_obj.get_string("foo") == std::to_string(base_obj.foo) );
     BOOST_CHECK ( base_obj.get<int>("foo") == base_obj.foo );
     BOOST_CHECK ( base_obj.get<int>("f@@") == base_obj.foo );
     BOOST_CHECK ( base_obj.get<int>("f@@1") == base_obj.foo+1 );
@@ -104,3 +129,4 @@ BOOST_AUTO_TEST_CASE( test_setters )
     derived_obj.set("bar",1234);
     BOOST_CHECK ( derived_obj.bar == 1234 );
 }
+

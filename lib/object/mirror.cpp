@@ -34,9 +34,9 @@ bool Mirror::Magic_Mirror::can_get( const std::string&) const
 {
     return false;
 }
-boost::any Mirror::Magic_Mirror::get(const Mirror&, const std::string&) const
+util::Any Mirror::Magic_Mirror::get(const Mirror&, const std::string&) const
 {
-    return boost::any();
+    return util::Any();
 }
 void Mirror::Magic_Mirror::get_all(const Mirror&, Properties&, const std::string&) const
 {
@@ -45,32 +45,32 @@ bool Mirror::Magic_Mirror::can_set(const std::string&) const
 {
     return false;
 }
-void Mirror::Magic_Mirror::set(Mirror&, const std::string&, const boost::any&) const
+void Mirror::Magic_Mirror::set(Mirror&, const std::string&, const util::Any&) const
 {
 }
 bool Mirror::Magic_Mirror::can_call(const std::string&) const
 {
     return false;
 }
-boost::any Mirror::Magic_Mirror::call(Mirror&, const std::string&, const Arguments&) const
+util::Any Mirror::Magic_Mirror::call(Mirror&, const std::string&, const Arguments&) const
 {
-    return boost::any();
+    return util::Any();
 }
 
 
 std::string Mirror::get_string (const std::string& name) const
 {
-    return get<std::string>(name);
+    return get_any(name).to_string();
 }
 
-boost::any Mirror::get_any (const std::string& name) const
+util::Any Mirror::get_any (const std::string& name) const
 {
     return get_magic().can_get(name) ?
         get_magic().get(*this, name) :
         get_extra(name);
 }
 
-void Mirror::set(const std::string& name, const boost::any& value)
+void Mirror::set(const std::string& name, const util::Any& value)
 {
     if ( get_magic().can_set(name) )
         get_magic().set(*this, name, value);
@@ -106,16 +106,16 @@ void Mirror::properties(Properties& out, const std::string& prefix) const
     get_magic().get_all(*this, out, prefix);
 }
 
-boost::any Mirror::call(const std::string& name, const Arguments& args)
+util::Any Mirror::call(const std::string& name, const Arguments& args)
 {
     return get_magic().can_call(name) ?
         get_magic().call(*this, name, args) :
         call_extra(name, args);
 }
 
-boost::any Mirror::get_extra(const std::string&) const
+util::Any Mirror::get_extra(const std::string&) const
 {
-    return boost::any();
+    return util::Any();
 }
 
 bool Mirror::can_get_extra(const std::string&) const
@@ -123,7 +123,7 @@ bool Mirror::can_get_extra(const std::string&) const
     return false;
 }
 
-void Mirror::set_extra(const std::string&, const boost::any&)
+void Mirror::set_extra(const std::string&, const util::Any&)
 {
 }
 
@@ -136,9 +136,9 @@ void Mirror::get_all_extra(Properties&, const std::string&) const
 {
 }
 
-boost::any Mirror::call_extra(const std::string&, const Arguments&)
+util::Any Mirror::call_extra(const std::string&, const Arguments&)
 {
-    return boost::any();
+    return util::Any();
 }
 
 bool Mirror::can_call_extra(const std::string&) const

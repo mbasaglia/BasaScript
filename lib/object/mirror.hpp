@@ -28,8 +28,9 @@
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
+#include <vector>
 
-#include <boost/any.hpp>
+#include "../util/any.hpp"
 
 namespace object {
 
@@ -39,8 +40,8 @@ namespace object {
  */
 class Mirror {
 public:
-    typedef std::unordered_map<std::string, boost::any> Properties;
-    typedef std::vector<boost::any> Arguments;
+    typedef std::unordered_map<std::string, util::Any> Properties;
+    typedef std::vector<util::Any> Arguments;
 
 protected:
     class Magic_Mirror
@@ -49,18 +50,19 @@ protected:
         static Magic_Mirror& instance();
 
         virtual bool can_get( const std::string& property) const;
-        virtual boost::any get(const Mirror& obj, const std::string& property) const;
+        virtual util::Any get(const Mirror& obj, const std::string& property) const;
         virtual void get_all(const Mirror& obj, Properties& out, const std::string& prefix) const;
 
         virtual bool can_set( const std::string& property) const;
-        virtual void set(Mirror& obj, const std::string& property, const boost::any& value) const;
+        virtual void set(Mirror& obj, const std::string& property, const util::Any& value) const;
 
         virtual bool can_call(const std::string& name) const;
-        virtual boost::any call(Mirror& obj, const std::string& name, const Arguments& args) const;
+        virtual util::Any call(Mirror& obj, const std::string& name, const Arguments& args) const;
 
     protected:
         Magic_Mirror() {}
         Magic_Mirror(const Magic_Mirror &) = delete;
+        Magic_Mirror& operator= (const Magic_Mirror&) = delete;
     };
 
 public:
@@ -71,9 +73,9 @@ public:
     std::string get_string (const std::string& name) const;
 
     /**
-     * \brief Returns the boost::any value for the given property
+     * \brief Returns the util::Any value for the given property
      */
-    boost::any get_any (const std::string& name) const;
+    util::Any get_any (const std::string& name) const;
 
     /**
      * \brief Returns a property as a custom type
@@ -81,11 +83,11 @@ public:
     template<class T>
         T get (const std::string& name) const
         {
-            boost::any any = get_any(name);
-            return any.empty() ? T() : boost::any_cast<T>(any);
+            util::Any any = get_any(name);
+            return any.empty() ? T() : any.cast<T>();
         }
 
-    void set(const std::string& name, const boost::any& value);
+    void set(const std::string& name, const util::Any& value);
 
     /**
      * \brief Whether the property can be read
@@ -121,7 +123,7 @@ public:
      * \param args  Arguments
      * \return What the method returned
      */
-    boost::any call(const std::string& name, const Arguments& args);
+    util::Any call(const std::string& name, const Arguments& args);
 
 
     /**
@@ -163,7 +165,7 @@ protected:
     /**
      * \brief Override if you want some extra properties
      */
-    virtual boost::any get_extra(const std::string& name) const;
+    virtual util::Any get_extra(const std::string& name) const;
     /**
      * \brief Override if you want some extra properties
      */
@@ -172,7 +174,7 @@ protected:
     /**
      * \brief Override if you want some extra writable properties
      */
-    virtual void set_extra(const std::string& name, const boost::any& value);
+    virtual void set_extra(const std::string& name, const util::Any& value);
 
     /**
      * \brief Override if you want some extra writable properties
@@ -188,7 +190,7 @@ protected:
     /**
      * \brief Override if you want some extra callable methods
      */
-    virtual boost::any call_extra(const std::string& name, const Arguments&args);
+    virtual util::Any call_extra(const std::string& name, const Arguments&args);
     /**
      * \brief Override if you want some extra callable methods
      */
@@ -206,7 +208,7 @@ namespace detail {
  * \brief Easier to get the address of this
  */
 template<class T>
-inline T unoverloaded_any_cast(const boost::any& a) { return boost::any_cast<T>(a); }
+inline typename std::decay<T>::type any_cast(const util::Any& a) { return a.cast<T>(); }
 
 /**
  * \brief Does nothing but move type information around
@@ -238,14 +240,6 @@ public:
     typedef decltype(first_argument_return(fptr())) type;
 };
 
-/*template<class Func>
-struct second_argument
-{
-    typedef typename std::conditional<std::is_class<Func>::value,
-        typename second_argument_functor<Func>::type,
-        typename second_argument_pointer<Func>::type
-        >::type type;
-};*/
 
 } // namespace detail
 
@@ -259,19 +253,19 @@ struct second_argument
 #define MIRROR(c,base) \
     public: \
     struct Magic_Mirror : base::Magic_Mirror { \
-    typedef std::function<boost::any (const c&)>             Getter; \
-    typedef std::function<void (c&, const boost::any&)>      Setter; \
-    typedef std::function<boost::any (c&, const Arguments&)> Caller; \
+    typedef std::function<util::Any (const c&)>             Getter; \
+    typedef std::function<void (c&, const util::Any&)>      Setter; \
+    typedef std::function<util::Any (c&, const Arguments&)> Caller; \
     std::unordered_map<std::string,Getter> getters; \
     std::unordered_map<std::string,Setter> setters; \
     std::unordered_map<std::string,Caller> methods; \
     static base::Magic_Mirror& base_instance() { return base::Magic_Mirror::instance(); } \
-    boost::any get(const ::object::Mirror& obj, const std::string& property) const override { \
+    util::Any get(const ::object::Mirror& obj, const std::string& property) const override { \
         auto it = getters.find(property); \
         return it != getters.end() ? it->second(reinterpret_cast<const c&>(obj)) : base_instance().get(obj,property); } \
     bool can_get(const std::string& property) const override { \
         return getters.find(property) != getters.end() || base_instance().can_get(property); } \
-    void set(::object::Mirror& obj, const std::string& property, const boost::any& value) const override {\
+    void set(::object::Mirror& obj, const std::string& property, const util::Any& value) const override {\
         auto it = setters.find(property); \
         return it != setters.end() ? it->second(reinterpret_cast<c&>(obj),value) : \
         base_instance().set(obj,property,value);  }\
@@ -283,10 +277,14 @@ struct second_argument
             out[prefix+p.first] = p.second(reinterpret_cast<const c&>(obj)); } \
     bool can_call(const std::string& name) const override { \
         return methods.find(name) != methods.end() || base_instance().can_call(name); } \
-    boost::any call(::object::Mirror& obj, const std::string& name,const Arguments& args) const override {\
+    util::Any call(::object::Mirror& obj, const std::string& name,const Arguments& args) const override {\
         auto it = methods.find(name); \
         return it != methods.end() ? it->second(reinterpret_cast<c&>(obj),args) : base_instance().call(obj,name,args);  }\
     static Magic_Mirror& instance() { static Magic_Mirror s; return s; } \
+    protected: \
+        Magic_Mirror() { c::static_type_id(); } \
+        Magic_Mirror(const Magic_Mirror&) = delete; \
+        Magic_Mirror& operator= (const Magic_Mirror&) = delete; \
     }; /*Magic_Mirror*/ \
     const ::object::Mirror::Magic_Mirror& get_magic() const override { \
         return Magic_Mirror::instance(); } \
@@ -330,7 +328,7 @@ struct second_argument
  */
 #define DECLARE_PROPERTY_GETTER(c,name,method) \
     DECLARE_PROPERTY_GET_FUNCTOR(c,name, \
-        [](const c& obj){ return boost::any(obj.method()); } )
+        [](const c& obj){ return util::Any(obj.method()); } )
 
 /**
  * \brief Declare a property written using a functor
@@ -347,7 +345,7 @@ struct second_argument
             typedef object::detail::second_argument<decltype(lambda)>::type Argument; \
             using namespace std::placeholders; \
             c::get_static_magic().setters[name] = \
-                std::bind(lambda, _1, std::bind(object::detail::unoverloaded_any_cast<Argument>,_2)); \
+                std::bind(lambda, _1, std::bind(object::detail::any_cast<Argument>,_2)); \
         } \
     }; static Magic_Mirror_SET_##c##_##symbol Object_Magic_Mirror_SET_##c##_##symbol; }
 
@@ -389,7 +387,7 @@ struct second_argument
  * \param setter    Setter method
  */
 #define DECLARE_PROPERTY_RENAME(c,name,symbol,getter,setter) \
-    DECLARE_PROPERTY_GET_ADVANCED(c,name,symbol, [](const c& obj){ return boost::any(obj.getter()); } ) \
+    DECLARE_PROPERTY_GET_ADVANCED(c,name,symbol, [](const c& obj){ return util::Any(obj.getter()); } ) \
     DECLARE_PROPERTY_SET_ADVANCED(c,name,symbol, \
         [](c& obj, ::object::detail::second_argument<decltype(&c::setter)>::type value) { obj.setter(value); }; )
 
@@ -399,7 +397,7 @@ struct second_argument
  * \param name  property/attribute name
  */
 #define DECLARE_PROPERTY_ATTRIBUTE_READONLY(c,name) \
-    DECLARE_PROPERTY_GET_FUNCTOR(c,name,[](const c& obj){ return boost::any(obj.name); } )
+    DECLARE_PROPERTY_GET_FUNCTOR(c,name,[](const c& obj){ return util::Any(obj.name); } )
 
 /**
  * \brief Declare a property accessible directly with an attribute
