@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BOOST_TEST_MODULE Test_Mirror
 #include "object/dynamic_mirror.hpp"
 #include <boost/test/unit_test.hpp>
-#include <boost/lexical_cast.hpp>
 
 class TestClass : public object::Mirror
 {

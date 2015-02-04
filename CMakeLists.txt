@@ -15,14 +15,18 @@
 project(BasaScript)
 cmake_minimum_required(VERSION 2.8)
 
+set (VERSION_MAJOR 0)
+set (VERSION_MINOR 1)
+set (MAINTAINER "Mattia Basaglia <mattia.basaglia@gmail.com>")
+
 # Flags
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -pedantic")
 include_directories("${CMAKE_SOURCE_DIR}/src")
 
 # Enable Debug by default, can be changed with -D CMAKE_BUILD_TYPE=Release
 if(CMAKE_BUILD_TYPE STREQUAL "")
-  set(CMAKE_BUILD_TYPE Debug)
-  set(DEBUG 1)
+    set(CMAKE_BUILD_TYPE Debug)
+    set(DEBUG 1)
 else()
     set(DEBUG 0)
 endif()
@@ -45,7 +49,8 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   include(CheckIncludeFileCXX)
   CHECK_INCLUDE_FILE_CXX("boost/multiprecision/cpp_dec_float.hpp" BOOST_cpp_dec_float)
-  if (NOT BOOST_cpp_dec_float )
+  CHECK_INCLUDE_FILE_CXX("boost/math/constants/constants.hpp" BOOST_constants)
+  if (NOT (BOOST_cpp_dec_float AND BOOST_constants))
     message(SEND_ERROR "Missing required boost libraries")
     unset(BOOST_cpp_dec_float CACHE)
   endif()
@@ -58,7 +63,29 @@ file(GLOB_RECURSE LIB_HEADERS lib/*.hpp)
 file(GLOB_RECURSE BIN_SOURCES src/*.cpp)
 file(GLOB_RECURSE BIN_HEADERS src/*.hpp)
 
+set(ALL_SOURCES ${LIB_SOURCES} ${LIB_HEADERS} ${BIN_SOURCES} ${BIN_HEADERS})
 add_executable(${PROJECT_NAME} ${LIB_SOURCES} ${BIN_SOURCES})
 
-#Subdirs
-add_subdirectory(test)
+# Subdirs
+add_subdirectory(test) # Unit tests
+
+# Extra stuff
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    set(DOXYGEN_OUTPUT doc)
+    foreach(source ${ALL_SOURCES})
+	set(DOXYGEN_INPUT "${DOXYGEN_INPUT} ${source}")
+    endforeach()
+    configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile)
+    add_custom_target(doc
+	    ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
+	    DEPENDS ${PROJECT_BINARY_DIR}/Doxyfile ${ALL_SOURCES}
+	    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+	    COMMENT "Generating Doxygen Documentation" VERBATIM
+    )
+    add_custom_target(doc-view
+	    xdg-open ${DOXYGEN_OUTPUT}/html/index.html
+	    COMMENT "Showing Doxygen documentation"
+    )
+endif(DOXYGEN_FOUND)
