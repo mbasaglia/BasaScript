@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 #define BOOST_TEST_MODULE Test_Mirror
-#include "object/mirror.hpp"
+#include "object/dynamic_mirror.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -77,6 +77,15 @@ public:
 };
 
 DECLARE_PROPERTY_ATTRIBUTE(TestDerived,bar)
+
+class TestDynamic : public object::Dynamic_Mirror
+{
+    MIRROR(TestDynamic,object::Dynamic_Mirror)
+public:
+    int member = 1;
+
+};
+DECLARE_PROPERTY_ATTRIBUTE(TestDynamic,member)
 
 TestClass base_obj;
 TestDerived derived_obj;
@@ -148,6 +157,9 @@ BOOST_AUTO_TEST_CASE( test_setters )
 
     derived_obj.set("bar",1234);
     BOOST_CHECK ( derived_obj.bar == 1234 );
+
+    base_obj.set("unexisting", 5);
+    BOOST_CHECK ( base_obj.get_any("unexisting").empty() );
 }
 
 BOOST_AUTO_TEST_CASE( test_methods )
@@ -162,4 +174,19 @@ BOOST_AUTO_TEST_CASE( test_methods )
     base_obj.call("set_foo", 6);
     BOOST_CHECK ( base_obj.foo == 6 );
     BOOST_CHECK( base_obj.call("cat", {"hello",123}).to_string() == "hello123" );
+}
+
+BOOST_AUTO_TEST_CASE( test_dynamic )
+{
+    TestDynamic dyn_obj;
+
+    BOOST_CHECK ( dyn_obj.get<int>("member") == dyn_obj.member );
+    BOOST_CHECK ( dyn_obj.get_any("not_member").empty() );
+
+    dyn_obj.set("member",123);
+    BOOST_CHECK ( dyn_obj.member == 123 );
+
+    dyn_obj.set("not_member",456);
+    BOOST_CHECK ( dyn_obj.get<int>("not_member") == 456 );
+
 }

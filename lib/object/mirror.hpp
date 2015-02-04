@@ -25,6 +25,7 @@
 #define OBJECT_MIRROR_HPP
 
 #include <functional>
+#include <map>
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
@@ -39,7 +40,7 @@ namespace object {
  */
 class Mirror {
 public:
-    typedef std::unordered_map<std::string, util::Any> Properties;
+    typedef std::map<std::string, util::Any> Properties;
     typedef std::vector<util::Any> Arguments;
 
 protected:
@@ -198,6 +199,7 @@ protected:
      * \param   prefix  Prefix to prepend to property names
      */
     virtual void get_all_extra(Properties& out, const std::string& prefix = "") const;
+
     /**
      * \brief Override if you want some extra callable methods
      */

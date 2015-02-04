@@ -57,7 +57,6 @@ util::Any Mirror::Magic_Mirror::call(Mirror&, const std::string&, const Argument
     return util::Any();
 }
 
-
 std::string Mirror::get_string (const std::string& name) const
 {
     return get_any(name).to_string();
