@@ -24,11 +24,13 @@
 #ifndef UTIL_ANY_HPP
 #define UTIL_ANY_HPP
 
+#include <list>
 #include <sstream>
 #include <stdexcept>
 #include <typeinfo>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace util {
 
@@ -229,6 +231,25 @@ inline void swap ( Any& a, Any& b )
  * \pre The contained type has operator<<
  */
 std::ostream& operator<< ( std::ostream& stream, const Any& any);
+
+namespace detail {
+inline std::list<util::Any> pack_to_vector_impl() { return {}; }
+
+template<class Head, class... Tail>
+    std::list<util::Any> pack_to_vector_impl(const Head& head, Tail... tail)
+    {
+        auto list = pack_to_vector_impl(tail...);
+        list.push_front(head);
+        return list;
+    }
+} // namespace detail
+
+template<class... Params>
+    std::vector<util::Any> pack_to_vector(Params... params)
+    {
+        auto list = detail::pack_to_vector_impl(params...);
+        return std::vector<util::Any>(list.begin(),list.end());
+    }
 
 } // namespace util
 #endif // UTIL_ANY_HPP

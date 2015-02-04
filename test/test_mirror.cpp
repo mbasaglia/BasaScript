@@ -37,6 +37,17 @@ public:
     void set_foo(int x) { foo = x; }
     int get_foo() const { return foo; }
 
+    int foo_plus(int i) { return foo+i; }
+    void void_method() { foo = 10; }
+
+    util::Any get_foo_any() const { return foo; }
+    std::string cat(const Mirror::Arguments& args)
+    {
+        std::stringstream ss;
+        for ( const auto& a: args )
+            ss << a;
+        return ss.str();
+    }
 };
 DECLARE_PROPERTY_GET_ADVANCED(TestClass,"f@@1",foo1,[](const TestClass& tc) { return tc.foo+1; })
 DECLARE_PROPERTY_GET_FUNCTOR(TestClass, foo2, [](const TestClass& tc) { return tc.foo+2; })
@@ -48,6 +59,15 @@ DECLARE_PROPERTY_SETTER(TestClass, foo3, set_foo)
 
 DECLARE_PROPERTY(TestClass,foo,get_foo,set_foo)
 DECLARE_PROPERTY_RENAME(TestClass,"f@@",weird_foo,get_foo,set_foo)
+
+DECLARE_METHOD_ADVANCED(TestClass,"meth@d1",method1,[](TestClass& tc, const ::object::Mirror::Arguments&) { return tc.foo+1; })
+DECLARE_METHOD_FUNCTOR(TestClass,method2,[](TestClass& tc, const ::object::Mirror::Arguments&) { return tc.foo+2; })
+DECLARE_METHOD(TestClass,get_foo)
+DECLARE_METHOD(TestClass,void_method)
+DECLARE_METHOD(TestClass,foo_plus)
+DECLARE_METHOD(TestClass,set_foo)
+DECLARE_METHOD(TestClass,get_foo_any)
+DECLARE_METHOD(TestClass,cat)
 
 class TestDerived : public TestClass
 {
@@ -130,3 +150,16 @@ BOOST_AUTO_TEST_CASE( test_setters )
     BOOST_CHECK ( derived_obj.bar == 1234 );
 }
 
+BOOST_AUTO_TEST_CASE( test_methods )
+{
+    BOOST_CHECK( base_obj.call("meth@d1", {}).cast<int>() == base_obj.get_foo()+1 );
+    BOOST_CHECK( base_obj.call("method2").cast<int>() == base_obj.get_foo()+2 );
+    BOOST_CHECK( base_obj.call("get_foo", {}).cast<int>() == base_obj.get_foo() );
+    BOOST_CHECK( base_obj.call("get_foo_any", {}).cast<int>() == base_obj.get_foo() );
+    base_obj.call("void_method");
+    BOOST_CHECK ( base_obj.foo == 10 );
+    BOOST_CHECK( base_obj.call("foo_plus", {5}).cast<int>() == base_obj.get_foo()+5 );
+    base_obj.call("set_foo", 6);
+    BOOST_CHECK ( base_obj.foo == 6 );
+    BOOST_CHECK( base_obj.call("cat", {"hello",123}).to_string() == "hello123" );
+}

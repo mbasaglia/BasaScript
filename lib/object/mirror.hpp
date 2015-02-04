@@ -34,7 +34,6 @@
 
 namespace object {
 
-
 /**
  * \brief Provides reflection
  */
@@ -123,7 +122,19 @@ public:
      * \param args  Arguments
      * \return What the method returned
      */
-    util::Any call(const std::string& name, const Arguments& args);
+    util::Any call(const std::string& name, const Arguments& args = Arguments());
+
+    /**
+     * \brief Calls a method by name
+     * \param name  Method name
+     * \param args  Arguments
+     * \return What the method returned
+     */
+    template<class... Types>
+    util::Any call(const std::string& name, Types... args)
+    {
+        return call(name, util::pack_to_vector(args...));
+    }
 
 
     /**
@@ -405,9 +416,144 @@ public:
  * \param name  property/attribute name
  */
 #define DECLARE_PROPERTY_ATTRIBUTE(c,name)  \
-        DECLARE_PROPERTY_ATTRIBUTE_READONLY(c,name) \
-        DECLARE_PROPERTY_SET_FUNCTOR(c,name, \
-        [](c&obj,const decltype(c::name) &value) { obj.name = value; })
+    DECLARE_PROPERTY_ATTRIBUTE_READONLY(c,name) \
+    DECLARE_PROPERTY_SET_FUNCTOR(c,name, \
+    [](c&obj,const decltype(c::name) &value) { obj.name = value; })
+
+/**
+ * \brief Define a method
+ * \param c         Class
+ * \param name      Method name as string
+ * \param symbol    Method name as C++ identifier
+ * \param functor   Functor (c& obj, const ::object::Mirror::Arguments& args) -> misc::Value
+ */
+#define DECLARE_METHOD_ADVANCED(c,name,symbol,functor) \
+    namespace detail { \
+    struct Magic_Mirror_CALL_##c##_##symbol { \
+        Magic_Mirror_CALL_##c##_##symbol() { \
+            c::get_static_magic().methods[name] = functor; }\
+    }; static Magic_Mirror_CALL_##c##_##symbol Object_Magic_Mirror_CALL_##c##_##symbol; }
+
+/**
+ * \brief Define a method
+ * \param c       Class
+ * \param name    Method name as C++ identifier
+ * \param functor Functor
+ */
+#define DECLARE_METHOD_FUNCTOR(c,name,functor) \
+    DECLARE_METHOD_ADVANCED(c,#name,name,functor)
+
+namespace detail {
+/**
+ * \brief Helper to convert pointers to member function to the correct
+ * std::function to be stored in the Magic_Mirror
+ */
+template<class Class>
+    class Method_To_Functor
+    {
+    public:
+        typedef Mirror::Arguments Arguments;
+        typedef std::function<util::Any (Class&, const Arguments&)> Caller;
+
+        // X foo() [const]
+        template<class Return>
+            static Caller convert(Return (Class::*func)())
+            {
+                return [func](Class& obj, const Arguments&)
+                    { return util::Any((obj.*func)()); };
+            }
+        template<class Return>
+            static Caller convert(Return (Class::*func)() const)
+            {
+                return [func](Class& obj, const Arguments&)
+                    { return util::Any((obj.*func)()); };
+            }
+
+        // void foo() [const]
+        static Caller convert(void (Class::*func)() const )
+        {
+            return [func](Class& obj, const Arguments&)
+            { (obj.*func)(); return util::Any(); };
+        }
+        static Caller convert(void (Class::*func)())
+        {
+            return [func](Class& obj, const Arguments&)
+            { (obj.*func)(); return util::Any(); };
+        }
+
+        // X foo(Y) [const]
+        template<class Return, class Arg>
+            static Caller convert(Return (Class::*func)(Arg) const )
+        {
+            typedef typename std::decay<Arg>::type ArgValue;
+            return [func](Class& obj, const Arguments& arg) {
+                return util::Any((obj.*func)(arg.empty() ? ArgValue() : arg[0].cast<ArgValue>()));
+            };
+        }
+        template<class Return, class Arg>
+            static Caller convert(Return (Class::*func)(Arg) )
+        {
+            typedef typename std::decay<Arg>::type ArgValue;
+            return [func](Class& obj, const Arguments& arg) {
+                return util::Any((obj.*func)(arg.empty() ? ArgValue() : arg[0].cast<ArgValue>()));
+            };
+        }
+
+        // void foo(Y) [const]
+        template<class Arg>
+            static Caller convert(void (Class::*func)(Arg) const )
+        {
+            typedef typename std::decay<Arg>::type ArgValue;
+            return [func](Class& obj, const Arguments& arg) {
+                (obj.*func)(arg.empty() ? ArgValue() : arg[0].cast<ArgValue>());
+                return util::Any();
+            };
+        }
+        template<class Arg>
+            static Caller convert(void (Class::*func)(Arg) )
+        {
+            typedef typename std::decay<Arg>::type ArgValue;
+            return [func](Class& obj, const Arguments& arg) {
+                (obj.*func)(arg.empty() ? ArgValue() : arg[0].cast<ArgValue>());
+                return util::Any();
+            };
+        }
+
+        // X foo(const Arguments&) [const]
+        template<class Return>
+            static Caller convert(Return (Class::*func)(const Arguments&))
+            {
+                return [func](Class& obj, const Arguments& args)
+                    { return util::Any((obj.*func)(args)); };
+            }
+        template<class Return>
+            static Caller convert(Return (Class::*func)(const Arguments&) const)
+            {
+                return [func](Class& obj, const Arguments& args)
+                    { return util::Any((obj.*func)(args)); };
+            }
+
+        // void foo(const Arguments&) [const]
+        static Caller convert(void (Class::*func)(const Arguments&) const )
+        {
+            return [func](Class& obj, const Arguments& args)
+            { (obj.*func)(args); return util::Any(); };
+        }
+        static Caller convert(void (Class::*func)(const Arguments&))
+        {
+            return [func](Class& obj, const Arguments& args)
+            { (obj.*func)(args); return util::Any(); };
+        }
+
+    };
+} // namespace detail
+/**
+ * \brief Define a method
+ * \param c       Class
+ * \param method  Method name (must take const ::object::Mirror::Arguments& args)
+ */
+#define DECLARE_METHOD(c,method) \
+    DECLARE_METHOD_FUNCTOR(c,method, ::object::detail::Method_To_Functor<c>::convert(&c::method))
 
 } // namespace object
 #endif // OBJECT_MIRROR_HPP
