@@ -111,6 +111,52 @@ BOOST_AUTO_TEST_CASE( test_any )
     BOOST_CHECK ( input == 5 );
 }
 
+
+class SimpleClass {};
+class VirtualClass { public: virtual ~VirtualClass() {} };
+BOOST_AUTO_TEST_CASE( test_any_traits )
+{
+    using namespace util;
+
+    Any_Traits traits_void_expected = { 1, 0, 0, 0, 0, 0 };
+    BOOST_CHECK ( Any().type_traits() == Any_Traits() && Any_Traits() == traits_void_expected );
+
+    int i = 1;
+    Any_Traits traits_int = Any(i).type_traits();
+    Any_Traits traits_int_expected = { 0, 0, 1, 0, 0, 0 };
+    BOOST_CHECK ( traits_int == traits_int_expected );
+
+    Any_Traits traits_intstar = Any(&i).type_traits();
+    Any_Traits traits_intstar_expected = { 0, 1, 0, 0, 0, 0 };
+    BOOST_CHECK ( traits_intstar == traits_intstar_expected );
+
+    SimpleClass simple_object;
+    Any_Traits traits_simple_object = Any(simple_object).type_traits();
+    Any_Traits traits_simple_object_expected = { 0, 0, 0, 1, 0, 0 };
+    BOOST_CHECK ( traits_simple_object == traits_simple_object_expected );
+
+    Any_Traits traits_simple_pointer = Any(&simple_object).type_traits();
+    Any_Traits traits_simple_pointer_expected = { 0, 1, 0, 1, 0, 0 };
+    BOOST_CHECK ( traits_simple_pointer == traits_simple_pointer_expected );
+
+    VirtualClass virtual_object;
+    Any_Traits traits_virtual_object = Any(virtual_object).type_traits();
+    Any_Traits traits_virtual_object_expected = { 0, 0, 0, 1, 0, 0 };
+    BOOST_CHECK ( traits_virtual_object == traits_virtual_object_expected );
+
+    Any_Traits traits_virtual_pointer = Any(&virtual_object).type_traits();
+    Any_Traits traits_virtual_pointer_expected = { 0, 1, 0, 1, 1, 0 };
+    BOOST_CHECK ( traits_virtual_pointer == traits_virtual_pointer_expected );
+
+    Any_Traits traits_mirror_object = Any(base_obj).type_traits();
+    Any_Traits traits_mirrore_object_expected = { 0, 0, 0, 1, 0, 1 };
+    BOOST_CHECK ( traits_mirror_object == traits_mirrore_object_expected );
+
+    Any_Traits traits_mirror_pointer = Any(&base_obj).type_traits();
+    Any_Traits traits_mirror_pointer_expected = { 0, 1, 0, 1, 1, 1 };
+    BOOST_CHECK ( traits_mirror_pointer == traits_mirror_pointer_expected );
+}
+
 BOOST_AUTO_TEST_CASE( test_type_id )
 {
     BOOST_CHECK ( TestDerived::static_type_id() > TestClass::static_type_id() );

@@ -32,7 +32,58 @@
 #include <utility>
 #include <vector>
 
+namespace object { class Mirror; }
+
 namespace util {
+
+/**
+ * \brief Contains traits of the type stored by an Any object
+ */
+struct Any_Traits
+{
+    bool is_void       :1;  ///< Only true for empty Any objects
+    bool is_pointer    :1; ///< Whether it's a pointer to something
+    bool is_arithmetic :1; ///< int, float and the like
+    bool is_class      :1; ///< Whether it's an object or a pointer to one
+    bool is_polymorphic:1; ///< Whether is a pointer to a polymorphic class
+    bool is_reflective :1; ///< Object inheriting object::Mirror
+
+    Any_Traits() :
+        is_void(1), is_pointer(0), is_arithmetic(0), is_class(0),
+        is_polymorphic(0), is_reflective(0)
+    {}
+    Any_Traits(
+        bool is_void,
+        bool is_pointer,
+        bool is_arithmetic,
+        bool is_class,
+        bool is_polymorphic,
+        bool is_reflective
+    ) :
+        is_void(is_void),
+        is_pointer(is_pointer),
+        is_arithmetic(is_arithmetic),
+        is_class(is_class),
+        is_polymorphic(is_polymorphic),
+        is_reflective(is_reflective)
+    {}
+
+    bool operator== (const Any_Traits& other) const
+    {
+        return
+            is_void == other.is_void &&
+            is_pointer == other.is_pointer &&
+            is_arithmetic == other.is_arithmetic &&
+            is_class == other.is_class &&
+            is_polymorphic == other.is_polymorphic &&
+            is_reflective == other.is_reflective;
+    }
+
+    bool operator!= (const Any_Traits& other) const
+    {
+        return ! (*this == other);
+    }
+};
 
 /**
  * \brief Can contain any type that is DefaultConstructible and CopyConstructible
@@ -98,6 +149,14 @@ public:
     const std::type_info & type_info() const
     {
         return content ? content->type_info() : typeid(void);
+    }
+
+    /**
+     * \brief Returns the traits of the contained type
+     */
+    Any_Traits type_traits() const
+    {
+        return content ? content->type_traits() : Any_Traits();
     }
 
     /**
@@ -170,6 +229,7 @@ private:
         virtual const std::type_info& type_info() const = 0;
         virtual Any_Base* clone() const = 0;
         virtual std::ostream& stream_output(std::ostream& stream) const = 0;
+        virtual Any_Traits type_traits() const = 0;
     };
 
 
@@ -191,14 +251,27 @@ private:
                 return typeid(T);
             }
 
-            virtual Any_Base* clone() const override
+            Any_Base* clone() const override
             {
                 return new Any_Holder(value);
             }
 
-            virtual std::ostream& stream_output(std::ostream& stream) const override
+            std::ostream& stream_output(std::ostream& stream) const override
             {
                 return stream << value;
+            }
+
+            Any_Traits type_traits() const override
+            {
+                typedef typename std::remove_pointer<T>::type referenced_type;
+                return {
+                    false, // is_void
+                    std::is_pointer<T>::value,
+                    std::is_arithmetic<T>::value,
+                    std::is_class<referenced_type>::value,
+                    std::is_pointer<T>::value && std::has_virtual_destructor<referenced_type>::value,
+                    std::is_base_of<object::Mirror,referenced_type>::value
+                };
             }
 
             value_type value;

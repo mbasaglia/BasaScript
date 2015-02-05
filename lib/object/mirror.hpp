@@ -67,6 +67,8 @@ protected:
 
 public:
 
+    virtual ~Mirror() {}
+
     /**
      * \brief Returns the string value for the given property
      */
