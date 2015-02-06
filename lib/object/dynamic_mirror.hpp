@@ -42,7 +42,7 @@ protected:
     bool can_set_extra(const std::string& name) const override;
     void get_all_extra(Properties& out, const std::string& prefix = "") const override;
 
-private:
+protected:
     Properties properties;
 };
 

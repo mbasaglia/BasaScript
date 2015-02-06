@@ -37,6 +37,8 @@ namespace object {
 
 /**
  * \brief Provides reflection
+ * \todo operator<< which calls a virtual function
+ * \todo store name of the class (could just be a virtual function overridden in MIRROR)
  */
 class Mirror {
 public:
