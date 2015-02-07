@@ -32,9 +32,27 @@
 #include <utility>
 #include <vector>
 
+#include <boost/type_traits.hpp>
+
 namespace object { class Mirror; }
 
 namespace util {
+
+namespace detail {
+template<bool can_compare>
+    struct Compare
+    {
+        template<class T>
+            static bool compare ( const T&, const T& ) { return false; }
+    };
+
+template<>
+    struct Compare<true>
+    {
+        template<class T>
+            static bool compare ( const T& a, const T& b ) { return a == b; }
+    };
+} // namespace (util::)detail
 
 /**
  * \brief Contains traits of the type stored by an Any object
@@ -204,12 +222,26 @@ public:
             throw std::domain_error(std::string("Bad Any cast from ")
                 +type_info().name()+" to "+typeid(Target).name());
         }
+    /**
+     * \brief Get pointer to the contained data
+     */
+    const void* pointer() const
+    {
+        return content ? content->pointer() : nullptr;
+    }
+    void* pointer()
+    {
+        return content ? content->pointer() : nullptr;
+    }
 
     /**
      * \brief Converts the contained value to a string
      * \pre The contained type has operator<<
      */
     std::string to_string() const;
+
+    bool operator== (const Any& other) const;
+    bool operator!= (const Any& other) const;
 
     friend std::ostream& operator<< ( std::ostream& stream, const Any& any);
 
@@ -230,6 +262,9 @@ private:
         virtual Any_Base* clone() const = 0;
         virtual std::ostream& stream_output(std::ostream& stream) const = 0;
         virtual Any_Traits type_traits() const = 0;
+        virtual const void* pointer() const = 0;
+        virtual void* pointer() = 0;
+        virtual bool compare(const Any_Base* other) const = 0;
     };
 
 
@@ -272,6 +307,24 @@ private:
                     std::is_pointer<T>::value && std::has_virtual_destructor<referenced_type>::value,
                     std::is_base_of<object::Mirror,referenced_type>::value
                 };
+            }
+
+            const void* pointer() const override
+            {
+                return &value;
+            }
+
+            void* pointer() override
+            {
+                return &value;
+            }
+
+            bool compare(const Any_Base* other) const override
+            {
+                if ( type_info() != other->type_info() )
+                    return false;
+                const Any_Holder* other_sameclass = static_cast<const Any_Holder*>(other);
+                return detail::Compare<boost::has_equal_to<T>::value>::compare(value,other_sameclass->value);
             }
 
             value_type value;

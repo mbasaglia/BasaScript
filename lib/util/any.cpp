@@ -58,6 +58,19 @@ std::string Any::to_string() const
     return ss.str();
 }
 
+bool Any::operator== (const Any& other) const
+{
+    if ( !content && !other.content )
+        return true;
+    if ( !content || !other.content )
+        return false;
+    return content->compare(other.content);
+}
+bool Any::operator!= (const Any& other) const
+{
+    return !(*this == other);
+}
+
 std::ostream& operator<< ( std::ostream& stream, const Any& any)
 {
     return any.content ? any.content->stream_output(stream) : stream;

@@ -32,12 +32,15 @@ namespace object {
  */
 class Array : public Dynamic_Mirror
 {
+    MIRROR(Array,Dynamic_Mirror)
+
 public:
     // C++ Container Requirements
     typedef Properties::value_type      value_type;
     typedef Properties::reference       reference;
     typedef Properties::const_reference const_reference;
     typedef Properties::iterator        iterator;
+    typedef Properties::const_iterator  const_iterator;
     typedef Properties::difference_type difference_type;
     typedef Properties::size_type       size_type;
 
@@ -46,17 +49,17 @@ public:
     Array& operator=(const Array&) = default;
 
     iterator begin() { return properties.begin(); }
-    iterator begin() const { return properties.begin(); }
-    iterator cbegin() const { return properties.begin(); }
+    const_iterator begin() const { return properties.begin(); }
+    const_iterator cbegin() const { return properties.begin(); }
     iterator end() { return properties.end(); }
-    iterator end() const { return properties.end(); }
-    iterator cend() const { return properties.end(); }
+    const_iterator end() const { return properties.end(); }
+    const_iterator cend() const { return properties.end(); }
 
-    bool operator== (const Array& const other) const
+    bool operator== (const Array& other) const
     {
         return properties == other.properties;
     }
-    bool operator!= (const Array& const other) const
+    bool operator!= (const Array& other) const
     {
         return properties == other.properties;
     }

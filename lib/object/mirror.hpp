@@ -37,8 +37,7 @@ namespace object {
 
 /**
  * \brief Provides reflection
- * \todo operator<< which calls a virtual function
- * \todo store name of the class (could just be a virtual function overridden in MIRROR)
+ * \todo Clone (?)
  */
 class Mirror {
 public:
@@ -172,6 +171,16 @@ public:
      */
     static int static_type_id();
 
+    /**
+     * \brief Class name
+     */
+    virtual std::string class_name() const = 0;
+
+    /**
+     * \brief Override if you want costom stream conversion
+     */
+    virtual std::ostream& print(std::ostream& stream) const;
+
 protected:
     /**
      * \brief Method used internally to get the dynamic magic object
@@ -218,6 +227,11 @@ protected:
      */
     static int new_type_id();
 };
+
+inline std::ostream& operator<< ( std::ostream& stream, const Mirror& mirror )
+{
+    return mirror.print(stream);
+}
 
 namespace detail {
 
@@ -311,6 +325,7 @@ public:
         return id; } \
     int type_id() const override { return static_type_id(); } \
     int has_type_id(int id) const override { return id == static_type_id() || base::has_type_id(id); } \
+    std::string class_name() const { return #c; } \
     private:
 
 /**
@@ -437,7 +452,7 @@ public:
     namespace detail { \
     struct Magic_Mirror_CALL_##c##_##symbol { \
         Magic_Mirror_CALL_##c##_##symbol() { \
-            c::get_static_magic().methods[name] = functor; }\
+            c::get_static_magic().methods[name] = functor; } \
     }; static Magic_Mirror_CALL_##c##_##symbol Object_Magic_Mirror_CALL_##c##_##symbol; }
 
 /**

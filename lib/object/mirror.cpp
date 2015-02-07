@@ -161,3 +161,14 @@ int Mirror::new_type_id()
     return ++id;
 }
 
+
+std::ostream& Mirror::print(std::ostream& stream) const
+{
+    stream << class_name() << '{';
+    for ( const auto& p : properties() )
+    {
+        stream << p.first << ':' << p.second << ',';
+    }
+    stream << '}';
+    return stream;
+}

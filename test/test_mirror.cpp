@@ -94,10 +94,17 @@ BOOST_AUTO_TEST_CASE( test_any )
 {
     util::Any any;
     BOOST_CHECK ( any.empty() );
+    BOOST_CHECK ( !any.pointer() );
     any = 5;
     BOOST_CHECK ( any.cast<int>() == 5 );
     BOOST_CHECK ( any.cast<long>() == 0 );
     BOOST_CHECK ( any.to_string() == "5" );
+    BOOST_CHECK ( any == 5 );
+    BOOST_CHECK ( any == any );
+    BOOST_CHECK ( any != util::Any() );
+    BOOST_CHECK ( util::Any() == util::Any() );
+    BOOST_CHECK ( util::Any() != 5 );
+
     util::Any other = 1.5;
 
     using std::swap;
@@ -109,6 +116,10 @@ BOOST_AUTO_TEST_CASE( test_any )
     int input = 0;
     BOOST_CHECK ( ss >> input );
     BOOST_CHECK ( input == 5 );
+
+    any = derived_obj;
+    BOOST_CHECK ( dynamic_cast<TestDerived*>(reinterpret_cast<object::Mirror*>(any.pointer())) );
+    BOOST_CHECK ( any != any );
 }
 
 
@@ -234,4 +245,14 @@ BOOST_AUTO_TEST_CASE( test_dynamic )
     dyn_obj.set("not_member",456);
     BOOST_CHECK ( dyn_obj.get<int>("not_member") == 456 );
 
+}
+BOOST_AUTO_TEST_CASE( test_misc )
+{
+    BOOST_CHECK ( base_obj.class_name() == "TestClass" );
+    TestDynamic dyn_obj;
+    util::Any any = dyn_obj;
+    BOOST_CHECK ( any.to_string() == "TestDynamic{member:1,}" );
+    dyn_obj.set("foo",2);
+    any = dyn_obj;
+    BOOST_CHECK ( any.to_string() == "TestDynamic{foo:2,member:1,}" );
 }

@@ -34,23 +34,23 @@ DECLARE_METHOD(Array,normalize_keys)
 DECLARE_METHOD(Array,key_exists)
 DECLARE_METHOD(Array,contains)
 DECLARE_METHOD_FUNCTOR(Array,subarray,
-    [](Array& arr, const Mirror::Properties& props)
+    [](Array& arr, const Mirror::Arguments& props)
     {
         return arr.subarray(
-            props.empty() ? "" : props[0].to_string,
-            props.size()<2? "" :props[1].to_string );
+            props.empty() ? "" : props.at(0).to_string(),
+            props.size()<2? "" : props.at(1).to_string() );
     })
-DECLARE_METHOD(Array,remove);
-DECLARE_METHOD(Array,push_back);
-DECLARE_METHOD(Array,pop_back);
-DECLARE_METHOD(Array,push_front);
-DECLARE_METHOD(Array,pop_front);
+DECLARE_METHOD(Array,remove)
+DECLARE_METHOD(Array,push_back)
+DECLARE_METHOD(Array,pop_back)
+DECLARE_METHOD(Array,push_front)
+DECLARE_METHOD(Array,pop_front)
 
 Array Array::keys() const
 {
     Array k;
     for ( const value_type& p : *this )
-        k.push_back(p.first());
+        k.push_back(p.first);
     return k;
 }
 
@@ -58,7 +58,7 @@ Array Array::values() const
 {
     Array k;
     for ( const value_type& p : *this )
-        k.push_back(p.second());
+        k.push_back(p.second);
     return k;
 }
 
@@ -74,7 +74,7 @@ bool Array::key_exists(const std::string& key) const
 bool Array::contains(const util::Any& value) const
 {
     for ( const value_type& p : *this )
-        if ( p.second == value ) /// \todo Any comparisons
+        if ( p.second == value )
             return true;
     return false;
 }
@@ -87,7 +87,7 @@ Array Array::subarray(const std::string& a, const std::string& b)
    auto it_b = properties.find(b);
    if ( it_b != properties.end() )
        ++it_b; // inclusive
-   for ( ; it_a < it_b; ++it_a )
+   for ( ; it_a != it_b; ++it_a )
        ret.properties.insert(*it_a);
    return ret;
 }
