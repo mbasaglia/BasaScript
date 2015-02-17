@@ -89,6 +89,8 @@ DECLARE_PROPERTY_ATTRIBUTE(TestDynamic,member)
 TestClass base_obj;
 TestDerived derived_obj;
 
+class SimpleClass {};
+class VirtualClass { public: virtual ~VirtualClass() {} };
 
 BOOST_AUTO_TEST_CASE( test_any )
 {
@@ -120,11 +122,11 @@ BOOST_AUTO_TEST_CASE( test_any )
     any = derived_obj;
     BOOST_CHECK ( dynamic_cast<TestDerived*>(reinterpret_cast<object::Mirror*>(any.pointer())) );
     BOOST_CHECK ( any != any );
+
+    any = SimpleClass();
+    BOOST_CHECK ( any.to_string() == "" );
 }
 
-
-class SimpleClass {};
-class VirtualClass { public: virtual ~VirtualClass() {} };
 BOOST_AUTO_TEST_CASE( test_any_traits )
 {
     using namespace util;

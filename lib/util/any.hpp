@@ -52,6 +52,27 @@ template<>
         template<class T>
             static bool compare ( const T& a, const T& b ) { return a == b; }
     };
+
+
+template<bool can_stream>
+    struct Stream
+    {
+        template<class T>
+            static std::ostream& print ( std::ostream& stream, const T& ) { return stream; }
+        /// \todo read() as well?
+    };
+
+template<>
+    struct Stream<true>
+    {
+        template<class T>
+            static std::ostream& print ( std::ostream& stream, const T&a )
+            {
+                stream << a;
+                return stream;
+            }
+    };
+
 } // namespace (util::)detail
 
 /**
@@ -293,7 +314,7 @@ private:
 
             std::ostream& stream_output(std::ostream& stream) const override
             {
-                return stream << value;
+                return detail::Stream<boost::has_left_shift<std::ostream&,T>::value>::print(stream,value);
             }
 
             Any_Traits type_traits() const override
