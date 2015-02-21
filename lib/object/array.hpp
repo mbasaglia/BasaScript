@@ -1,5 +1,5 @@
 /**
- \ file            *
+ \file
 
  \author Mattia Basaglia
 
@@ -26,9 +26,12 @@
 #include "dynamic_mirror.hpp"
 namespace object {
 
+class List;
+
 /**
  * \brief An associative array object
  * \todo test
+ * \todo string conversion
  */
 class Array : public Dynamic_Mirror
 {
@@ -98,11 +101,11 @@ public:
     /**
      * \brief Returns a numeric array of the keys
      */
-    Array keys() const;
+    List keys() const;
     /**
      * \brief Returns a numeric array of the values
      */
-    Array values() const;
+    List values() const;
     /**
      * \brief Transforms the Array so that keys are consecutive integer starting from 0
      */

@@ -22,6 +22,7 @@
 
  */
 #include "array.hpp"
+#include "list.hpp"
 
 namespace object {
 
@@ -46,17 +47,17 @@ DECLARE_METHOD(Array,pop_back)
 DECLARE_METHOD(Array,push_front)
 DECLARE_METHOD(Array,pop_front)
 
-Array Array::keys() const
+List Array::keys() const
 {
-    Array k;
+    List k;
     for ( const value_type& p : *this )
         k.push_back(p.first);
     return k;
 }
 
-Array Array::values() const
+List Array::values() const
 {
-    Array k;
+    List k;
     for ( const value_type& p : *this )
         k.push_back(p.second);
     return k;
@@ -64,7 +65,10 @@ Array Array::values() const
 
 void Array::normalize_keys()
 {
-    *this = values();
+    Array k;
+    for ( const value_type& p : *this )
+        k.push_back(p.first);
+    *this = k;
 }
 
 bool Array::key_exists(const std::string& key) const
