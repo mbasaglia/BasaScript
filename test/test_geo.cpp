@@ -32,6 +32,7 @@ BOOST_AUTO_TEST_CASE( test_point )
 {
     BOOST_CHECK ( distance(Point(0,3),Point(4,0)) == 5 );
     BOOST_CHECK ( -Point(3,3.5_real)*2 == Point(-6,-7) );
+    BOOST_CHECK ( -2*Point(3,3.5_real) == Point(-6,-7) );
 }
 
 BOOST_AUTO_TEST_CASE( test_rectangle )
@@ -67,6 +68,8 @@ BOOST_AUTO_TEST_CASE( test_rectangle )
         BOOST_CHECK(!r.intersects(r.translated(100,0)));
         BOOST_CHECK(r.intersection(r2) == Rectangle(Point(30,20),Point(110,110)) );
         BOOST_CHECK(!r.intersection(r.translated(100,0)).is_valid());
+        BOOST_CHECK(!r.intersection(Rectangle()).is_valid());
+        BOOST_CHECK(!Rectangle().intersection(r).is_valid());
 
         BOOST_CHECK(r.united(r2) == Rectangle(Point(10,10),Point(130,120)) );
         BOOST_CHECK(r.united(Rectangle()) == r);
