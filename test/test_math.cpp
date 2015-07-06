@@ -38,7 +38,6 @@ BOOST_AUTO_TEST_CASE( test_real )
     BOOST_CHECK( Real(0.001,3) == Real("0.001") );
     BOOST_CHECK( Real("1.23456789") == Real(123456789) / math::pow(Real(10),8) );
     BOOST_CHECK( Real("0.99999999") < 1 );
-    BOOST_CHECK( math::sin(math::pi/2) == 1 );
     BOOST_CHECK( +Real(1) == 1 );
     BOOST_CHECK( Real("0.123456789") != Real("0.123456789000000000000000001") );
 
@@ -83,4 +82,12 @@ BOOST_AUTO_TEST_CASE( test_real )
     BOOST_CHECK(math::trunc(Real("3.6")) == 3);
     BOOST_CHECK(math::trunc(-Real("3.4")) == -3);
     BOOST_CHECK(math::trunc(-Real("3.6")) == -3);
+
+    BOOST_CHECK( math::sin(math::pi/2) == 1 );
+    BOOST_CHECK( math::cos(math::pi) == -1 );
+    BOOST_CHECK( math::cos(math::pi/4) == math::sin(math::pi/4) );
+    BOOST_CHECK( math::tan(math::pi/4) == 1 );
+    BOOST_CHECK( math::acos(math::cos(1)) == 1 );
+    BOOST_CHECK( math::asin(math::sin(1)) == 1 );
+    BOOST_CHECK( math::atan(math::tan(1)) == 1 );
 }
