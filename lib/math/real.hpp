@@ -118,6 +118,10 @@ std::istream& operator>> (std::istream& input, Real& number);
  * \brief The number of radians to get half a pie
  */
 extern const Real pi;
+/**
+ * \brief Base of the natural logaritm
+ */
+extern const Real e;
 
 } // namespace math
 

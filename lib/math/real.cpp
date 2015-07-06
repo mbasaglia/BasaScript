@@ -41,6 +41,7 @@ namespace detail {
 } // namespace (math::)detail
 
 const Real pi = detail::base_to_real(boost::math::constants::pi<detail::RealBase>());
+const Real e = detail::base_to_real(boost::math::constants::e<detail::RealBase>());
 
 Real::Real (int value) : value (value) {}
 Real::Real (long long value) : value (value) {}
