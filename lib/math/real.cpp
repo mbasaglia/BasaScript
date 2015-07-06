@@ -71,6 +71,7 @@ Real& Real::operator*= (const Real& other)
 }
 Real& Real::operator/= (const Real& other)
 {
+    /// \todo division by zero?
     value /= other.value;
     return *this;
 }

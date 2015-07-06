@@ -34,10 +34,13 @@ BOOST_AUTO_TEST_CASE( test_real )
 
     BOOST_CHECK( Real(1) == 1 );
     BOOST_CHECK( Real("2") == 2 );
+    BOOST_CHECK( Real(1ll) == 1 );
     BOOST_CHECK( Real(0.001,3) == Real("0.001") );
     BOOST_CHECK( Real("1.23456789") == Real(123456789) / math::pow(Real(10),8) );
     BOOST_CHECK( Real("0.99999999") < 1 );
     BOOST_CHECK( math::sin(math::pi/2) == 1 );
+    BOOST_CHECK( +Real(1) == 1 );
+    BOOST_CHECK( Real("0.123456789") != Real("0.123456789000000000000000001") );
 
     Real sum_hundredth = 0;
     for (int i = 0; i < 100; i++)
@@ -52,4 +55,32 @@ BOOST_AUTO_TEST_CASE( test_real )
     Real stream_input;
     ss >> stream_input;
     BOOST_CHECK( stream_input == string_output );
+
+    Real r = 5;
+    BOOST_CHECK(r++ == 5 && r == 6);
+    BOOST_CHECK(r-- == 6 && r == 5);
+    BOOST_CHECK(++r == 6 && r == 6);
+    BOOST_CHECK(--r == 5 && r == 5);
+    BOOST_CHECK((r -= 35, r == -30));
+    BOOST_CHECK((r /= 6, r == -5)); /// \todo division by zero
+    BOOST_CHECK((r *= -1, r == 5));
+
+    BOOST_CHECK(math::ceil(Real("3.4")) == 4);
+    BOOST_CHECK(math::ceil(Real("3.6")) == 4);
+    BOOST_CHECK(math::ceil(-Real("3.4")) == -3);
+    BOOST_CHECK(math::ceil(-Real("3.6")) == -3);
+    BOOST_CHECK(math::floor(Real("3.4")) == 3);
+    BOOST_CHECK(math::floor(Real("3.6")) == 3);
+    BOOST_CHECK(math::floor(-Real("3.4")) == -4);
+    BOOST_CHECK(math::floor(-Real("3.6")) == -4);
+    BOOST_CHECK(math::round(Real("3.4")) == 3);
+    BOOST_CHECK(math::round(Real("3.6")) == 4);
+    BOOST_CHECK(math::round(Real("3.5")) == 4);
+    BOOST_CHECK(math::round(-Real("3.4")) == -3);
+    BOOST_CHECK(math::round(-Real("3.6")) == -4);
+    BOOST_CHECK(math::round(-Real("3.5")) == -4);
+    BOOST_CHECK(math::trunc(Real("3.4")) == 3);
+    BOOST_CHECK(math::trunc(Real("3.6")) == 3);
+    BOOST_CHECK(math::trunc(-Real("3.4")) == -3);
+    BOOST_CHECK(math::trunc(-Real("3.6")) == -3);
 }
